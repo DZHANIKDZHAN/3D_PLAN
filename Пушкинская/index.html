@@ -137,6 +137,23 @@ body.immersive .three-wrap{position:fixed;inset:0;width:100%;height:100vh;height
 body.immersive .ov-full{display:none}
 body.immersive .ov-close{display:block}
 body.walking .ov{display:none}
+.chip{font:600 12.5px var(--f-body);color:#fff;background:rgba(15,20,23,.62);padding:5px 10px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;border:0;white-space:nowrap}
+.chip .dot{width:8px;height:8px;border-radius:50%;background:#4ade80;flex:none}
+.chip.off .dot{background:#9aa3a8}
+.ov-online{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));left:calc(10px + env(safe-area-inset-left,0px))}
+.fp-left{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.fp-me{pointer-events:auto;cursor:pointer}
+.lbl3d.who{display:flex;align-items:center;gap:5px;background:rgba(15,20,23,.75);color:#fff;border-color:transparent;font-weight:600}
+.lbl3d.who .wdot{width:8px;height:8px;border-radius:50%;flex:none}
+.name-dlg{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;background:rgba(15,20,23,.45);padding:16px}
+.name-dlg form{background:var(--panel);color:var(--ink);border-radius:12px;padding:18px;max-width:340px;width:100%;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.nd-title{margin:0 0 6px;font:700 17px var(--f-display)}
+.nd-note{margin:0 0 12px;font-size:13px;color:var(--muted)}
+.name-dlg input{width:100%;font:500 16px var(--f-body);padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.nd-err{margin:6px 0 0;font-size:13px;color:#c0303b}
+.nd-row{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+.nd-row button{font:600 14px var(--f-body);border-radius:8px;padding:9px 16px;cursor:pointer;border:1px solid var(--line);background:transparent;color:var(--ink)}
+.nd-row button[type=submit]{background:var(--accent);border-color:var(--accent);color:#fff}
 @media (max-width:700px){
   .tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
   .tabs button{white-space:nowrap;flex:none}
@@ -198,6 +215,7 @@ body.walking .ov{display:none}
         <div id="three-wrap" class="three-wrap">
           <div id="readout" class="readout" hidden></div>
           <div class="ov">
+            <span class="chip ov-online off" id="online-a"><span class="dot"></span><span class="txt">Связь…</span></span>
             <button type="button" class="ov-btn ov-full" id="ov-full">⤢ Во весь экран</button>
             <button type="button" class="ov-btn ov-close" id="ov-close">✕ Свернуть</button>
             <button type="button" class="ov-walk" id="ov-walk">Пройтись внутри</button>
@@ -205,7 +223,11 @@ body.walking .ov{display:none}
           <div id="fp-hud" class="fp-hud" hidden>
             <div class="fp-cross"></div>
             <div class="fp-top">
-              <span class="fp-where" id="fp-where">1 этаж</span>
+              <div class="fp-left">
+                <span class="fp-where" id="fp-where">1 этаж</span>
+                <button type="button" class="chip fp-me" id="fp-me" title="Сменить имя"><span class="dot" id="fp-me-dot"></span><span id="fp-me-name">Гость</span></button>
+                <span class="chip off" id="online-b"><span class="dot"></span><span class="txt">Связь…</span></span>
+              </div>
               <div class="fp-btns">
                 <button type="button" data-spot="entry"><span class="lg">К входу</span><span class="sm">Вход</span></button>
                 <button type="button" data-spot="hall2"><span class="lg">В зал 2 этажа</span><span class="sm">2 этаж</span></button>
@@ -217,6 +239,15 @@ body.walking .ov{display:none}
               <span class="touch-only">Джойстик слева — идти · проведите пальцем по экрану — осмотреться</span>
             </div>
             <div class="fp-joy" id="fp-joy"><div class="fp-knob"></div></div>
+          </div>
+          <div class="name-dlg" id="name-dlg" hidden>
+            <form id="name-form" novalidate>
+              <p class="nd-title">Как вас подписать?</p>
+              <p class="nd-note">Имя будет видно над вашим персонажем другим посетителям, которые сейчас гуляют по модели. Передаются только имя и место в модели, IP-адрес никому не показывается.</p>
+              <input id="name-input" maxlength="24" autocomplete="nickname" placeholder="Например, Андрей" aria-label="Ваше имя">
+              <p class="nd-err" id="name-err" hidden>Введите имя, чтобы войти.</p>
+              <div class="nd-row"><button type="button" id="name-cancel">Отмена</button><button type="submit">Войти</button></div>
+            </form>
           </div>
         </div>
         <p class="hint">Вращать — левая кнопка мыши или один палец. Сдвигать — правая кнопка или два пальца. Приближать — колесо или щипок. «Пройтись внутри» включает вид от первого лица, рост 175 см. Рулетка: включите её и кликните две точки на полу или ступенях.</p>
@@ -792,6 +823,7 @@ function enterFP(spot = 'entry'){
 function exitFP(){
   if (!fp.on) return;
   fp.on = false; fp.keys.clear(); fp.joy.x = fp.joy.y = 0; fp.drag = null;
+  publishState(true);
   if (document.pointerLockElement) document.exitPointerLock();
   const f = new THREE.Vector3(); camera.getWorldDirection(f);
   controls.target.copy(camera.position).addScaledVector(f, 3);
@@ -831,7 +863,7 @@ function showHelp(){
 }
 $('ov-full').addEventListener('click', () => setImmersive(true));
 $('ov-close').addEventListener('click', () => setImmersive(false));
-$('ov-walk').addEventListener('click', () => enterFP('entry'));
+$('ov-walk').addEventListener('click', () => startWalk('entry'));
 const MOVE_KEYS = new Set(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight']);
 window.addEventListener('keydown', e => {
   if (e.code === 'Escape' && !fp.on && document.body.classList.contains('immersive')) { setImmersive(false); return; }
@@ -879,7 +911,146 @@ joy.addEventListener('pointerup', joyEnd);
 joy.addEventListener('pointercancel', joyEnd);
 document.querySelectorAll('[data-spot]').forEach(b => b.addEventListener('click', () => enterFP(b.dataset.spot)));
 $('fp-exit').addEventListener('click', exitFP);
-$('v-walk').addEventListener('click', () => { if (fp.on) exitFP(); else enterFP('entry'); });
+$('v-walk').addEventListener('click', () => { if (fp.on) exitFP(); else startWalk('entry'); });
+
+/* ---- other visitors: shared walk through a public MQTT relay ----
+   Every open page publishes its name, colour and position to ROOM; everyone subscribed draws the others.
+   No IP addresses: a static site cannot see them, and showing them to strangers would expose visitors.
+   ROOM must be unique per project folder. Two relays are used at once, so one being down is not fatal. */
+const ROOM = 'dzh-3dplan/pushkinskaya/v1';
+const BROKERS = ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'];
+const MQTT_URL = 'https://cdn.jsdelivr.net/npm/mqtt@5.15.1/dist/mqtt.esm.js';
+const NAME_KEY = 'kofe-name';
+const me = { id: Math.random().toString(36).slice(2, 10), name: '' };
+me.hue = [...me.id].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) % 360, 7);
+me.color = `hsl(${me.hue}, 70%, 50%)`;
+try { me.name = (localStorage.getItem(NAME_KEY) || '').trim().slice(0, 24); } catch (e) {}
+const TOPIC = `${ROOM}/p/${me.id}`;
+const clients = [];
+let netState = 'connecting';
+const others = new Map();
+const othersG = new THREE.Group(); scene.add(othersG);
+const visorMat = new THREE.MeshStandardMaterial({ color:0x1b2329, roughness:.3, metalness:.4 });
+const clampN = (v, a, b) => Math.min(b, Math.max(a, (typeof v === 'number' && Number.isFinite(v)) ? v : 0));
+
+function setOnline(){
+  const all = [...others.values()], walkers = all.filter(o => o.walking).length;
+  const on = netState === 'on';
+  const txt = on ? `На сайте: ${all.length + 1}` + (walkers ? ` · гуляют: ${walkers}` : '') : (netState === 'off' ? 'Без связи с другими' : 'Связь…');
+  for (const id of ['online-a', 'online-b']) { const el = $(id); el.classList.toggle('off', !on); el.querySelector('.txt').textContent = txt; }
+}
+function updateNet(){ netState = clients.some(c => c.connected) ? 'on' : (netState === 'connecting' ? 'connecting' : 'off'); setOnline(); }
+async function startPresence(){
+  let connect = null;
+  try { const mod = await import(MQTT_URL); const api = mod.default || mod; connect = api.connect || (api.default && api.default.connect); } catch (e) {}
+  if (!connect) { netState = 'off'; setOnline(); return; }
+  BROKERS.forEach((url, i) => {
+    try {
+      const c = connect(url, { clientId:`kofe_${me.id}_${i}`, clean:true, keepalive:30, connectTimeout:8000, reconnectPeriod:6000,
+        will:{ topic:TOPIC, payload:JSON.stringify({ id:me.id, leave:1 }), qos:0, retain:false } });
+      c.on('connect', () => { c.subscribe(`${ROOM}/p/+`, { qos:0 }); netState = 'on'; setOnline(); publishState(true); });
+      c.on('message', (topic, buf) => onPresence(buf));
+      c.on('error', () => {});
+      c.on('offline', updateNet);
+      c.on('close', updateNet);
+      clients.push(c);
+    } catch (e) {}
+  });
+  setTimeout(() => { if (!clients.some(c => c.connected)) { netState = 'off'; setOnline(); } }, 12000);
+}
+function makeOther(id){
+  const mat = new THREE.MeshStandardMaterial({ color:0x888888, roughness:.6 });
+  const g = new THREE.Group(), inner = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(.2, .85, 4, 14), mat); body.scale.set(1, 1, .65); body.position.y = .8;
+  const head = new THREE.Mesh(new THREE.SphereGeometry(.13, 20, 14), mat); head.position.y = 1.6;
+  const visor = new THREE.Mesh(new THREE.BoxGeometry(.17, .05, .04), visorMat); visor.position.set(0, 1.63, -.115);
+  inner.add(body, head, visor); g.add(inner);
+  const el = document.createElement('div'); el.className = 'lbl3d who';
+  const dot = document.createElement('span'); dot.className = 'wdot';
+  const nameEl = document.createElement('span');
+  el.append(dot, nameEl);
+  const lab = new CSS2DObject(el); lab.position.y = 1.98; g.add(lab);
+  g.visible = false; othersG.add(g);
+  return { id, g, inner, mat, el, dot, nameEl, name:'', hue:-1, walking:false, last:0, tgt:null, cur:null, phase:0 };
+}
+function dropOther(id){
+  const o = others.get(id); if (!o) return;
+  othersG.remove(o.g);
+  o.g.traverse(x => { if (x.geometry) x.geometry.dispose(); });
+  o.mat.dispose(); o.el.remove();
+  others.delete(id); setOnline();
+}
+function onPresence(buf){
+  let m;
+  try { if (!buf || buf.length > 600) return; m = JSON.parse(typeof buf === 'string' ? buf : new TextDecoder().decode(buf)); } catch (e) { return; }
+  if (!m || typeof m.id !== 'string' || m.id === me.id || m.id.length > 16) return;
+  if (m.leave) { dropOther(m.id); return; }
+  let o = others.get(m.id), fresh = false;
+  if (!o) { if (others.size >= 30) return; o = makeOther(m.id); others.set(m.id, o); fresh = true; }
+  o.last = performance.now();
+  const wasWalking = o.walking; o.walking = !!m.w;
+  const name = (typeof m.n === 'string' ? m.n : '').trim().slice(0, 24) || 'Гость';
+  if (name !== o.name) { o.name = name; o.nameEl.textContent = name; }
+  const hue = Math.round(clampN(m.h, 0, 359));
+  if (hue !== o.hue) { o.hue = hue; o.mat.color.set(`hsl(${hue}, 70%, 50%)`); o.dot.style.background = `hsl(${hue}, 70%, 50%)`; }
+  o.tgt = { x:clampN(m.x, -100, 1300), y:clampN(m.y, -100, 560), f:clampN(m.f, 0, 400), yaw:clampN(m.a, -1e4, 1e4) };
+  if (!o.cur || !wasWalking) o.cur = { ...o.tgt };
+  if (fresh || wasWalking !== o.walking) setOnline();
+}
+function tickOthers(dt){
+  const now = performance.now(), k = 1 - Math.exp(-dt * 10);
+  for (const [id, o] of others) {
+    if (now - o.last > 7000) { dropOther(id); continue; }
+    if (!o.cur) continue;
+    const dx = o.tgt.x - o.cur.x, dy = o.tgt.y - o.cur.y;
+    o.cur.x += dx * k; o.cur.y += dy * k; o.cur.f += (o.tgt.f - o.cur.f) * k;
+    const da = Math.atan2(Math.sin(o.tgt.yaw - o.cur.yaw), Math.cos(o.tgt.yaw - o.cur.yaw)); o.cur.yaw += da * k;
+    const moving = Math.hypot(dx, dy) > 2;
+    o.phase += moving ? dt * 9 : 0;
+    o.g.position.set(o.cur.x * S, o.cur.f * S, -o.cur.y * S);
+    o.g.rotation.y = o.cur.yaw;
+    o.inner.position.y = moving ? Math.abs(Math.sin(o.phase)) * .035 : 0;
+    o.g.visible = o.walking && (g2.visible || o.cur.f < 300);
+  }
+}
+let lastPub = 0, lastSent = null;
+function publishState(force){
+  if (!clients.some(c => c.connected)) return;
+  const now = performance.now(), w = fp.on ? 1 : 0;
+  const st = w ? { x:Math.round(fp.x), y:Math.round(fp.y), f:Math.round(fp.footS), a:Math.round(fp.yaw * 100) / 100 } : { x:0, y:0, f:0, a:0 };
+  const changed = !lastSent || w !== lastSent.w || Math.abs(st.x - lastSent.x) > 2 || Math.abs(st.y - lastSent.y) > 2 || Math.abs(st.f - lastSent.f) > 2 || Math.abs(st.a - lastSent.a) > 0.04;
+  if (!force && !(changed && now - lastPub > 120) && now - lastPub < 2500) return;
+  const msg = JSON.stringify({ id:me.id, n:me.name, h:me.hue, w, ...st });
+  for (const c of clients) if (c.connected) c.publish(TOPIC, msg, { qos:0, retain:false });
+  lastPub = now; lastSent = { w, ...st };
+}
+window.addEventListener('pagehide', () => {
+  const msg = JSON.stringify({ id:me.id, leave:1 });
+  for (const c of clients) if (c.connected) c.publish(TOPIC, msg, { qos:0, retain:false });
+});
+
+/* name: asked once before the first walk, editable from the walk HUD */
+let afterName = null;
+function updateMe(){ $('fp-me-name').textContent = me.name || 'Гость'; $('fp-me-dot').style.background = me.color; }
+function askName(then){
+  afterName = then || null;
+  if (document.pointerLockElement) document.exitPointerLock();
+  $('name-input').value = me.name; $('name-err').hidden = true; $('name-dlg').hidden = false;
+  setTimeout(() => { try { $('name-input').focus(); } catch (e) {} }, 30);
+}
+function startWalk(spot){ if (!me.name) askName(() => enterFP(spot)); else enterFP(spot); }
+$('name-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const v = $('name-input').value.trim().slice(0, 24);
+  if (!v) { $('name-err').hidden = false; return; }
+  me.name = v;
+  try { localStorage.setItem(NAME_KEY, v); } catch (err) {}
+  $('name-dlg').hidden = true; updateMe(); publishState(true);
+  const f = afterName; afterName = null; if (f) f();
+});
+$('name-input').addEventListener('input', () => { $('name-err').hidden = true; });
+$('name-cancel').addEventListener('click', () => { $('name-dlg').hidden = true; afterName = null; });
+$('fp-me').addEventListener('click', () => askName(null));
 
 /* ---- sizing & loop ---- */
 function resize(){
@@ -895,6 +1066,7 @@ new ResizeObserver(resize).observe(wrap);
 let lastT = performance.now();
 renderer.setAnimationLoop(now => {
   const dt = Math.min(0.05, Math.max(0, (now - lastT) / 1000)); lastT = now;
+  tickOthers(dt); publishState(false);
   if ($('view-model').hidden) return;
   if (fp.on) updateFP(dt);
   else {
@@ -1133,7 +1305,7 @@ function showTab(id){
   if (!TABS.includes(id)) id = 'model';
   for (const t of TABS) { $('view-'+t).hidden = t !== id; $('tab-'+t).setAttribute('aria-selected', String(t === id)); }
   if (id === 'model') requestAnimationFrame(resize);
-  if (walk) enterFP('entry'); else if (id !== 'model') exitFP();
+  if (walk) startWalk('entry'); else if (id !== 'model') exitFP();
 }
 document.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => {
   if (location.hash.slice(1) === b.dataset.tab) showTab(b.dataset.tab); else location.hash = b.dataset.tab;
@@ -1145,7 +1317,9 @@ buildScene();
 renderPlans();
 resize();
 goTo('overview', true);
+updateMe();
 showTab(location.hash.slice(1));
+startPresence();
 </script>
 
 </body>
