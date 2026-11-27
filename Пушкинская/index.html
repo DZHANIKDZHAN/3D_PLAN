@@ -1,0 +1,1078 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="3D-модель и обмерные планы помещения под кофейню">
+<title>Обмерный план кофейни</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Manrope:wght@600;700&display=swap">
+<style>
+/* layout: drafting table — the drawing takes the stage, a narrow measurement sheet sits on the right */
+:root{
+  --bg:#eceeed; --panel:#fbfbfa; --ink:#17222b; --muted:#5a6670; --line:#d3d8d9;
+  --accent:#1d6c8a; --accent-soft:#dcebf1; --warn:#a85a00; --warn-soft:#f7ecdc;
+  --wall:#1f2a33; --floor:#f6f7f5; --void:#e2e7e9; --stair:#f1e3e4; --stair-line:#8c3a44; --dim:#1d6c8a; --scene:#e6e9e8;
+  --f-display:"Manrope","Segoe UI",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1417; --panel:#161d22; --ink:#e4eaed; --muted:#93a0a9; --line:#2a343b;
+  --accent:#62b4d4; --accent-soft:#16303b; --warn:#f0a43c; --warn-soft:#3a2a12;
+  --wall:#d6dee3; --floor:#1a2228; --void:#222c33; --stair:#3a2428; --stair-line:#e39aa3; --dim:#62b4d4; --scene:#1b2227; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1417; --panel:#161d22; --ink:#e4eaed; --muted:#93a0a9; --line:#2a343b;
+  --accent:#62b4d4; --accent-soft:#16303b; --warn:#f0a43c; --warn-soft:#3a2a12;
+  --wall:#d6dee3; --floor:#1a2228; --void:#222c33; --stair:#3a2428; --stair-line:#e39aa3; --dim:#62b4d4; --scene:#1b2227; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55}
+.page{max-width:1480px;margin:0 auto;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.head{display:flex;flex-wrap:wrap;gap:16px 32px;align-items:flex-end;justify-content:space-between;margin-bottom:16px}
+.head>div{min-width:0;max-width:72ch}
+.eyebrow{margin:0 0 4px;font:500 12px/1.4 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+h1{margin:0;font:700 clamp(26px,3.2vw,36px)/1.1 var(--f-display);letter-spacing:-.01em;text-wrap:balance}
+.lede{margin:8px 0 0;color:var(--muted)}
+.lede b{color:var(--warn);font-weight:600}
+.kpis{display:flex;gap:24px;margin:0}
+.kpis div{display:flex;flex-direction:column}
+.kpis dt{font:500 12px var(--f-mono);color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.kpis dd{margin:0;font:600 24px var(--f-display);font-variant-numeric:tabular-nums}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.tabs button{font:500 14px var(--f-body);color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:999px;padding:7px 16px;cursor:pointer}
+.tabs button:hover{border-color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+@media (max-width:980px){.layout{grid-template-columns:minmax(0,1fr)}}
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;min-width:0}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line)}
+.seg{display:flex;flex-wrap:wrap;gap:4px}
+.seg button{font:500 13px var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:5px 10px;cursor:pointer}
+.seg button:hover{border-color:var(--accent)}
+.seg button.on{background:var(--accent-soft);border-color:var(--accent);color:var(--ink)}
+.checks{display:flex;flex-wrap:wrap;gap:4px 14px}
+.checks label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink);cursor:pointer;user-select:none}
+.checks input{accent-color:var(--accent);width:15px;height:15px;margin:0}
+.three-wrap{position:relative;height:min(72vh,760px);min-height:420px;touch-action:none}
+.three-wrap canvas{display:block}
+.three-wrap.measuring canvas{cursor:crosshair}
+.readout{position:absolute;left:12px;bottom:12px;background:var(--panel);color:var(--ink);border:1px solid var(--accent);border-radius:8px;padding:6px 10px;font:500 13px var(--f-mono);font-variant-numeric:tabular-nums;pointer-events:none}
+.lbl3d{font:500 12px/1.2 var(--f-body);color:#17222b;background:rgba(255,255,255,.88);border:1px solid rgba(23,34,43,.12);padding:3px 7px;border-radius:5px;white-space:nowrap;pointer-events:none}
+.lbl3d.soft{background:rgba(255,255,255,.6);color:#3d4a54}
+.lbl3d.meas{background:#1d6c8a;color:#fff;border-color:#1d6c8a;font-family:var(--f-mono)}
+.hint{margin:0;padding:10px 12px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+.sheet{overflow-x:auto;background:var(--floor)}
+.sheet svg{display:block;width:100%;min-width:720px;height:auto}
+#svg-plan1 svg,#svg-secB svg{max-width:660px;min-width:560px;margin:0 auto}
+.cap{margin:0;padding:12px 14px 0;font:600 15px var(--f-display);background:var(--floor)}
+.cap span{font:400 13px var(--f-body);color:var(--muted);margin-left:8px}
+.plan text{font-family:var(--f-mono);fill:var(--ink)}
+.plan .lbl{font-family:var(--f-body);font-weight:600;paint-order:stroke;stroke:var(--floor);stroke-width:.4em;stroke-linejoin:round}
+.plan .sub{fill:var(--muted);paint-order:stroke;stroke:var(--floor);stroke-width:.4em;stroke-linejoin:round}
+.plan .w{fill:var(--wall)}
+.plan .fl{fill:var(--floor)}
+.plan .vd{fill:var(--void)}
+.plan .st{fill:var(--stair)}
+.plan .tr{stroke:var(--stair-line);stroke-width:1;fill:none;vector-effect:non-scaling-stroke}
+.plan .walk{stroke:var(--stair-line);stroke-width:1.4;fill:none;vector-effect:non-scaling-stroke}
+.plan .ah{fill:var(--stair-line)}
+.plan .dl{stroke:var(--dim);stroke-width:.9;fill:none;vector-effect:non-scaling-stroke}
+.plan .tick{stroke-width:1.8}
+.plan .dt{fill:var(--dim);paint-order:stroke;stroke:var(--floor);stroke-width:.35em;stroke-linejoin:round}
+.plan .dt.q{fill:var(--warn)}
+.plan .dash{stroke:var(--muted);stroke-dasharray:7 5;fill:none;stroke-width:1;vector-effect:non-scaling-stroke}
+.plan .rail{stroke:#c0303b;stroke-width:2.4;fill:none;vector-effect:non-scaling-stroke}
+.plan .thin{stroke:var(--ink);stroke-width:1;fill:none;vector-effect:non-scaling-stroke}
+.plan .muted{stroke:var(--muted);stroke-width:1;fill:none;vector-effect:non-scaling-stroke}
+.plan .glass{stroke:var(--accent);stroke-width:1.6;vector-effect:non-scaling-stroke}
+.plan .grid{stroke:var(--line);stroke-width:.6;vector-effect:non-scaling-stroke}
+.plan .sec{stroke:var(--warn);stroke-width:1.4;stroke-dasharray:16 5 3 5;vector-effect:non-scaling-stroke;fill:none}
+.plan .secT{fill:var(--warn);font-weight:500;paint-order:stroke;stroke:var(--floor);stroke-width:.35em}
+.plan .ink{fill:var(--ink)}
+.plan .ghost{fill:var(--void);opacity:.55}
+aside{display:flex;flex-direction:column;gap:14px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.card h2{margin:0 0 10px;font:700 16px var(--f-display)}
+.facts{margin:0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;font-size:14px}
+.facts dt{color:var(--muted);min-width:0}
+.facts dd{margin:0;text-align:right;font:500 13px var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.facts .sep{grid-column:1/-1;border-top:1px solid var(--line);margin:4px 0}
+.note{margin:0 0 12px;font-size:13px;color:var(--muted)}
+.param{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;align-items:center;margin-bottom:12px}
+.param label{font-size:13px}
+.param output{font:500 13px var(--f-mono);color:var(--warn);background:var(--warn-soft);padding:1px 7px;border-radius:5px;font-variant-numeric:tabular-nums}
+.param input{grid-column:1/-1;width:100%;accent-color:var(--warn)}
+.btn{font:500 13px var(--f-body);color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer}
+.btn:hover{border-color:var(--muted)}
+.list{margin:0;padding-left:18px;font-size:13.5px;display:flex;flex-direction:column;gap:6px}
+.list li::marker{color:var(--warn)}
+.list.plain li::marker{color:var(--muted)}
+.seg button.walk{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.seg button.walk:hover{filter:brightness(1.08)}
+.three-wrap.fp canvas{cursor:grab}
+.fp-hud{position:absolute;inset:0;pointer-events:none;z-index:2}
+.fp-cross{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:rgba(255,255,255,.9);box-shadow:0 0 0 1px rgba(0,0,0,.35)}
+.fp-top{position:absolute;top:10px;left:10px;right:10px;display:flex;flex-wrap:wrap;gap:6px;justify-content:space-between;align-items:flex-start}
+.fp-where{font:600 13px var(--f-body);color:#fff;background:rgba(15,20,23,.62);padding:5px 10px;border-radius:8px}
+.fp-btns{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+.fp-btns button{pointer-events:auto;font:500 13px var(--f-body);color:#17222b;background:rgba(255,255,255,.93);border:1px solid rgba(0,0,0,.12);border-radius:8px;padding:6px 10px;cursor:pointer}
+.fp-btns button.exit{background:#17222b;color:#fff;border-color:#17222b}
+.fp-help{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);width:max-content;max-width:calc(100% - 24px);font:500 12.5px/1.4 var(--f-body);color:#fff;background:rgba(15,20,23,.62);padding:6px 12px;border-radius:8px;text-align:center}
+.fp-joy{position:absolute;left:18px;bottom:64px;width:124px;height:124px;border-radius:50%;background:rgba(15,20,23,.28);border:2px solid rgba(255,255,255,.6);pointer-events:auto;touch-action:none}
+.fp-knob{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:rgba(255,255,255,.88)}
+.touch-only{display:none}
+@media (pointer:coarse){.touch-only{display:inline}.mouse-only{display:none}}
+@media (pointer:fine){.fp-joy{display:none}}
+@media (max-width:600px){.three-wrap{height:62vh;min-height:360px}.kpis{gap:18px}.kpis dd{font-size:20px}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+<style>body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+<div class="page">
+  <header class="head">
+    <div>
+      <p class="eyebrow">Помещение под кофейню · обмеры 27.11.2026 · размеры в сантиметрах</p>
+      <h1>Обмерный план кофейни</h1>
+      <p class="lede">На 1 этаже вход и лестница. Основной зал на 2 этаже, под скатной крышей. Модель можно вращать, а можно пройтись внутри от первого лица — кнопка «Пройтись внутри». <b>Оранжевым</b> отмечено то, что ещё уточняется.</p>
+    </div>
+    <dl class="kpis">
+      <div><dt>1 этаж</dt><dd>16,5 м²</dd></div>
+      <div><dt>2 этаж</dt><dd>40,5 м²</dd></div>
+      <div><dt>Всего</dt><dd>57 м²</dd></div>
+    </dl>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Разделы">
+    <button role="tab" id="tab-model" data-tab="model" aria-selected="true">3D-модель</button>
+    <button role="tab" id="tab-plan-1" data-tab="plan-1" aria-selected="false">План 1 этажа</button>
+    <button role="tab" id="tab-plan-2" data-tab="plan-2" aria-selected="false">План 2 этажа</button>
+    <button role="tab" id="tab-sections" data-tab="sections" aria-selected="false">Разрезы</button>
+  </nav>
+
+  <div class="layout">
+    <main class="stage">
+      <section id="view-model" role="tabpanel" aria-labelledby="tab-model">
+        <div class="toolbar">
+          <div class="seg"><button type="button" id="v-walk" class="walk">Пройтись внутри</button></div>
+          <div class="seg" role="group" aria-label="Точка обзора">
+            <button type="button" id="v-overview" data-view="overview" class="on">Общий вид</button>
+            <button type="button" id="v-top" data-view="top">Сверху</button>
+            <button type="button" id="v-top1" data-view="top1">1 этаж сверху</button>
+            <button type="button" id="v-entry" data-view="entry">От входа</button>
+            <button type="button" id="v-hall2" data-view="hall2">В зале 2 этажа</button>
+          </div>
+          <div class="checks">
+            <label><input type="checkbox" id="t-floor2" checked> 2 этаж</label>
+            <label><input type="checkbox" id="t-cut" checked> Убирать стены перед камерой</label>
+            <label><input type="checkbox" id="t-ghost" checked> Соседнее помещение</label>
+            <label><input type="checkbox" id="t-labels" checked> Подписи</label>
+            <label><input type="checkbox" id="t-measure"> Рулетка</label>
+          </div>
+        </div>
+        <div id="three-wrap" class="three-wrap">
+          <div id="readout" class="readout" hidden></div>
+          <div id="fp-hud" class="fp-hud" hidden>
+            <div class="fp-cross"></div>
+            <div class="fp-top">
+              <span class="fp-where" id="fp-where">1 этаж</span>
+              <div class="fp-btns">
+                <button type="button" data-spot="entry">К входу</button>
+                <button type="button" data-spot="hall2">В зал 2 этажа</button>
+                <button type="button" class="exit" id="fp-exit">Выйти из прогулки</button>
+              </div>
+            </div>
+            <div class="fp-help">
+              <span class="mouse-only">W A S D — идти · стрелки — идти и поворачивать · Shift — быстрее · мышь — осмотреться (клик по сцене захватывает мышь, Esc отпускает)</span>
+              <span class="touch-only">Джойстик слева — идти · проведите пальцем по экрану — осмотреться</span>
+            </div>
+            <div class="fp-joy" id="fp-joy"><div class="fp-knob"></div></div>
+          </div>
+        </div>
+        <p class="hint">Вращать — левая кнопка мыши или один палец. Сдвигать — правая кнопка или два пальца. Приближать — колесо или щипок. «Пройтись внутри» включает вид от первого лица, рост 175 см. Рулетка: включите её и кликните две точки на полу или ступенях.</p>
+      </section>
+
+      <section id="view-plan-1" role="tabpanel" aria-labelledby="tab-plan-1" hidden>
+        <p class="cap">План 1 этажа <span>отметка ±0 · сетка 1 м</span></p>
+        <div class="sheet" id="svg-plan1"></div>
+        <p class="hint">Пунктир внутри — край пола 2 этажа над головой. Справа за стеной соседнее помещение: над ним продолжается зал 2 этажа.</p>
+      </section>
+
+      <section id="view-plan-2" role="tabpanel" aria-labelledby="tab-plan-2" hidden>
+        <p class="cap">План 2 этажа <span>отметка +365 · сетка 1 м</span></p>
+        <div class="sheet" id="svg-plan2"></div>
+        <p class="hint">Пунктир вдоль длинных стен — линии, где начинаются скаты потолка. Оранжевые штрихпунктиры — места разрезов А–А и Б–Б.</p>
+      </section>
+
+      <section id="view-sections" role="tabpanel" aria-labelledby="tab-sections" hidden>
+        <p class="cap">Разрез А–А <span>вдоль фасада, взгляд на заднюю стену</span></p>
+        <div class="sheet" id="svg-secA"></div>
+        <p class="cap">Разрез Б–Б <span>поперёк зала 2 этажа, взгляд в сторону лестницы</span></p>
+        <div class="sheet" id="svg-secB"></div>
+        <p class="hint">Заливкой показано то, что попало в разрез. Тонкие линии — то, что видно за ним.</p>
+      </section>
+    </main>
+
+    <aside>
+      <section class="card">
+        <h2>Главные размеры</h2>
+        <dl class="facts">
+          <dt>1 этаж, коробка</dt><dd>344 × 457</dd>
+          <dt>Тамбур входа</dt><dd>143 × 56</dd>
+          <dt>Пол без лестницы</dt><dd>246 × 359 · 8,8 м²</dd>
+          <dt>До пола 2 этажа</dt><dd>365</dd>
+          <dt>Под верхним маршем</dt><dd>от 220</dd>
+          <div class="sep"></div>
+          <dt>Зал 2 этажа вдоль фасада</dt><dd>907 × 457</dd>
+          <dt>Вдоль задней стены</dt><dd>816</dd>
+          <dt>Зал без склада</dt><dd>≈ 30,9 м²</dd>
+          <dt>Склад</dt><dd>285 × 336</dd>
+          <dt>Высота склада</dt><dd>285 / 230</dd>
+          <dt>Второй свет</dt><dd>155 × 359</dd>
+          <dt>Стены 2 этажа до скатов</dt><dd>226</dd>
+          <div class="sep"></div>
+          <dt>Ширина марша</dt><dd>98</dd>
+          <dt>Ступени (расчёт)</dt><dd>21 × 17,4</dd>
+        </dl>
+      </section>
+
+      <section class="card">
+        <h2>Ещё уточняется</h2>
+        <p class="note">Эти значения пока оценочные. Ползунки меняют модель только у вас на экране, так что можно примерить свои цифры.</p>
+        <div class="param"><label for="p-ceil">Потолок 2 этажа, плоская часть</label><output id="o-ceil" for="p-ceil"></output><input type="range" id="p-ceil" min="240" max="340" step="1"></div>
+        <div class="param"><label for="p-slope">Ширина скатов от стены</label><output id="o-slope" for="p-slope"></output><input type="range" id="p-slope" min="0" max="150" step="5"></div>
+        <div class="param"><label for="p-winD">Круглое окно, диаметр</label><output id="o-winD" for="p-winD"></output><input type="range" id="p-winD" min="50" max="130" step="1"></div>
+        <div class="param"><label for="p-winX">Окно: от перил до центра</label><output id="o-winX" for="p-winX"></output><input type="range" id="p-winX" min="40" max="570" step="1"></div>
+        <div class="param"><label for="p-winC">Окно: центр от пола</label><output id="o-winC" for="p-winC"></output><input type="range" id="p-winC" min="40" max="170" step="1"></div>
+        <button type="button" class="btn" id="p-reset">Вернуть исходные значения</button>
+        <p class="note" style="margin:14px 0 8px">Ещё не замерено:</p>
+        <ul class="list">
+          <li>Как начинается лестница у входа. В модели нижние три ступени открыты в сторону входа, как на плане из объявления.</li>
+          <li>Ширина входной двери. Есть ли на 1 этаже витрина.</li>
+          <li>Высота тамбура. Сейчас он нарисован на всю высоту этажа.</li>
+          <li>Где ввод воды и канализации. Санузла нет, его нужно ставить.</li>
+          <li>Электрощит и выделенная мощность в кВт. От этого зависит выбор кофемашины.</li>
+          <li>Вентиляция и вытяжка.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>Допущения в модели</h2>
+        <ul class="list plain">
+          <li>622 на эскизе 2 этажа считается от перил второго света до склада. Отсюда ширина второго света 155. На плане из объявления она около 175.</li>
+          <li>Нижний марш идёт вдоль левой стены, верхний — вдоль задней и выходит на 2 этаж у правой стены 1 этажа. Ступени рассчитаны: 13 внизу и 8 вверху.</li>
+          <li>Скаты идут вдоль обеих длинных стен. Склад высотой 230 у фасада и 285 в высокой части, поэтому плоский потолок зала взят 285.</li>
+          <li>Толщина стен 30 и перекрытия 20 условные, только для чертежа. Размеры комнат — по замерам изнутри.</li>
+        </ul>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const $ = id => document.getElementById(id);
+
+/* ================= measured geometry, cm =================
+   X — along the facade, from the left wall of floor 1 (stair side) to the right.
+   Y — depth, from the street facade (0) to the back wall.
+   Z — height, floor 1 = 0. */
+const S = 0.01;                    // cm → m for 3D
+const T = 30, SLAB = 20, H1 = 365, W2 = 226;
+const RAIL_X = 253, FLIGHT_Y = 359, STORE_X = 875, STORE_Y = 336, STORE_T = 8;
+const RISERS = 21, R = H1 / RISERS;
+const LOW_N = 13, LOW_L = 362, D1 = LOW_L / LOW_N;
+const UP_N = 8, D2 = (344 - 98) / UP_N;
+const LAND_Z = LOW_N * R;
+const FOOT_OPEN = 3 * D1;          // the first three treads are open towards the entrance
+const partTop = y => R + 12 + (LAND_Z - R) * y / LOW_L;
+const F1 = [[0,0],[130,0],[130,-56],[273,-56],[273,0],[344,0],[344,455],[0,457]];
+const F2 = [[0,0],[1160,0],[1160,455],[0,457]];
+const back1 = x => 457 - 2 * x / 344;
+const back2 = x => 457 - 2 * x / 1160;
+const slabPoly = () => [[RAIL_X,0],[1160,0],[1160,455],[344,back2(344)],[344,FLIGHT_Y],[RAIL_X,FLIGHT_Y]];
+
+const DEFAULTS = { ceil: 285, slope: 60, winD: 90, winX: 311, winC: 95 };
+const P = { ...DEFAULTS };
+const KEY = 'kofe-plan-params-v1';
+try { const saved = JSON.parse(localStorage.getItem(KEY) || 'null'); if (saved && typeof saved === 'object') for (const k in DEFAULTS) if (Number.isFinite(saved[k])) P[k] = saved[k]; } catch (e) {}
+function saveP(){ try { localStorage.setItem(KEY, JSON.stringify(P)); } catch (e) {} }
+function clampP(){
+  P.ceil = Math.min(Math.max(P.ceil, 240), 340);
+  P.slope = Math.min(Math.max(P.slope, 0), 150);
+  P.winD = Math.min(Math.max(P.winD, 50), 130);
+  const r = P.winD / 2;
+  P.winC = Math.min(Math.max(P.winC, r + 5), W2 - r - 5);
+  P.winX = Math.min(Math.max(P.winX, r + 5), STORE_X - RAIL_X - r - 5);
+}
+clampP();
+
+function ceilAt(y){
+  const s = P.slope, c = P.ceil;
+  if (s <= 0) return c;
+  if (y < s) return W2 + (c - W2) * y / s;
+  if (y > 457 - s) return W2 + (c - W2) * (457 - y) / s;
+  return c;
+}
+function contour(poly){
+  const n = poly.length;
+  const cvx = poly.map((p,i) => { const a = poly[(i-1+n)%n], b = poly[(i+1)%n]; return (p[0]-a[0])*(b[1]-p[1]) - (p[1]-a[1])*(b[0]-p[0]) > 0; });
+  return poly.map((p,i) => ({ a:p, b:poly[(i+1)%n], extA: cvx[i] ? T : 0, extB: cvx[(i+1)%n] ? T : 0 }));
+}
+const segLen = w => Math.hypot(w.b[0]-w.a[0], w.b[1]-w.a[1]);
+const rectProfile = (L, eA, eB, h) => [[-eA,0],[L+eB,0],[L+eB,h],[-eA,h]];
+function mansardProfile(L, eA, eB){
+  const s = Math.min(P.slope, L/2 - 1), c = P.ceil;
+  return [[-eA,0],[L+eB,0],[L+eB,W2],[L,W2],[L-s,c],[s,c],[0,W2],[-eA,W2]];
+}
+function buildSpec(){
+  const wx = RAIL_X + P.winX, r = P.winD / 2;
+  const s1 = contour(F1).map((w,i) => {
+    const L = segLen(w);
+    return { ...w, L, z0:0, t:T, prof: rectProfile(L, w.extA, w.extB, i === 5 ? H1 - SLAB : H1),
+      openings: i === 2 ? [{ kind:'door', u0:21.5, u1:121.5, v1:220 }] : [] };
+  });
+  const s2 = contour(F2).map((w,i) => {
+    const L = segLen(w);
+    return { ...w, L, z0:H1, t:T, prof: (i === 1 || i === 3) ? mansardProfile(L, w.extA, w.extB) : rectProfile(L, w.extA, w.extB, W2),
+      openings: i === 0 ? [{ kind:'win', u0:wx - r, u1:wx + r, u:wx, v:P.winC, r }] : [] };
+  });
+  const profA = [[0,0],[STORE_Y,0],[STORE_Y,ceilAt(STORE_Y)]];
+  if (P.slope > 0 && P.slope < STORE_Y) profA.push([P.slope, P.ceil]);
+  profA.push([0, ceilAt(0)]);
+  const inner = [
+    { a:[STORE_X,0], b:[STORE_X,STORE_Y], extA:0, extB:0, L:STORE_Y, z0:H1, t:STORE_T, prof:profA, openings:[] },
+    { a:[STORE_X,STORE_Y], b:[1160,STORE_Y], extA:0, extB:0, L:1160-STORE_X, z0:H1, t:STORE_T,
+      prof: rectProfile(1160-STORE_X, 0, 0, ceilAt(STORE_Y)), openings:[{ kind:'door', u0:102, u1:182, v1:200 }] },
+  ];
+  const PL = LOW_L - FOOT_OPEN;
+  const part = { a:[98,FOOT_OPEN], b:[98,LOW_L], extA:0, extB:0, L:PL, z0:0, t:3, prof:[[0,0],[PL,0],[PL,partTop(LOW_L)],[0,partTop(FOOT_OPEN)]], openings:[] };
+  return { s1, s2, inner, part, wx };
+}
+
+/* ================= 3D ================= */
+const wrap = $('three-wrap');
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+wrap.prepend(renderer.domElement);
+const labelRenderer = new CSS2DRenderer();
+Object.assign(labelRenderer.domElement.style, { position:'absolute', top:'0', left:'0', pointerEvents:'none' });
+wrap.appendChild(labelRenderer.domElement);
+
+const scene = new THREE.Scene();
+const sceneBg = () => getComputedStyle(document.documentElement).getPropertyValue('--scene').trim() || '#e6e9e8';
+scene.background = new THREE.Color(sceneBg());
+const syncBg = () => scene.background.set(sceneBg());
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncBg);
+new MutationObserver(syncBg).observe(document.documentElement, { attributes:true, attributeFilter:['data-theme'] });
+
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environmentIntensity = 0.5;
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8f94, 0.9));
+const sun = new THREE.DirectionalLight(0xfff3e2, 1.3); sun.position.set(-6, 14, 10); scene.add(sun);
+const warm1 = new THREE.PointLight(0xffd9a8, 6); warm1.position.set(1.75, 4.6, -1.8); scene.add(warm1);
+const warm2 = new THREE.PointLight(0xffe2bd, 9); warm2.position.set(7.0, 5.9, -2.3); scene.add(warm2);
+
+const grid = new THREE.GridHelper(30, 30, 0x8c969c, 0xb4bcc0);
+grid.position.set(5.8, -0.13, -2.3);
+grid.material.transparent = true; grid.material.opacity = 0.35;
+scene.add(grid);
+
+const camera = new THREE.PerspectiveCamera(52, 1, 0.05, 300);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.zoomToCursor = true;
+controls.maxDistance = 45;
+
+const v3 = ([X,Y,Z]) => new THREE.Vector3(X*S, Z*S, -Y*S);
+
+function tileTexture(base, grout){
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const g = c.getContext('2d');
+  g.fillStyle = base; g.fillRect(0,0,256,256);
+  for (let i = 0; i < 1600; i++) { const a = Math.random() * 0.06; g.fillStyle = Math.random() > .5 ? `rgba(255,255,255,${a})` : `rgba(0,0,0,${a})`; g.fillRect(Math.random()*256, Math.random()*256, 2, 2); }
+  g.strokeStyle = grout; g.lineWidth = 3; g.strokeRect(1.5, 1.5, 253, 253);
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1/0.6, 1/0.6);
+  t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  return t;
+}
+const mat = {
+  wall: new THREE.MeshStandardMaterial({ color:0xeeece7, roughness:.93 }),
+  ceil: new THREE.MeshStandardMaterial({ color:0xf3f2ee, roughness:.95, side:THREE.DoubleSide }),
+  tile1: new THREE.MeshStandardMaterial({ map:tileTexture('#3d4145', '#25282b'), roughness:.55 }),
+  tile2: new THREE.MeshStandardMaterial({ map:tileTexture('#4a4f54', '#33373b'), roughness:.6 }),
+  carpet: new THREE.MeshStandardMaterial({ color:0x7a1e2b, roughness:1 }),
+  red: new THREE.MeshStandardMaterial({ color:0x8e1c25, roughness:.45, metalness:.35 }),
+  steel: new THREE.MeshStandardMaterial({ color:0xc3c8cc, roughness:.3, metalness:.9 }),
+  glass: new THREE.MeshStandardMaterial({ color:0xcfe8f5, roughness:.05, transparent:true, opacity:.32, side:THREE.DoubleSide, depthWrite:false }),
+  frame: new THREE.MeshStandardMaterial({ color:0xf5f5f2, roughness:.5 }),
+  dark: new THREE.MeshStandardMaterial({ color:0x25292d, roughness:.55, metalness:.4 }),
+  ghost: new THREE.MeshStandardMaterial({ color:0x9aa3a8, transparent:true, opacity:.13, depthWrite:false }),
+  led: new THREE.MeshStandardMaterial({ color:0xffc061, emissive:0xffb347, emissiveIntensity:2.2 }),
+  person: new THREE.MeshStandardMaterial({ color:0x7d8a93, roughness:.8 }),
+};
+const EDGE = 0x39424a;
+const edgeStatic = new THREE.LineBasicMaterial({ color:EDGE, transparent:true, opacity:.45 });
+
+let bld = null, g1 = null, g2 = null, ghost = null;
+let shell = [], measurables = [], people = [];
+
+function shapeFor(w){
+  let prof = w.prof.slice();
+  const doors = w.openings.filter(o => o.kind === 'door').sort((a,b) => a.u0 - b.u0);
+  if (doors.length) {
+    const bottom = [prof[0]];
+    for (const d of doors) bottom.push([d.u0,0],[d.u0,d.v1],[d.u1,d.v1],[d.u1,0]);
+    prof = [...bottom, ...prof.slice(1)];
+  }
+  const shape = new THREE.Shape(prof.map(([u,v]) => new THREE.Vector2(u*S, v*S)));
+  for (const o of w.openings) if (o.kind === 'win') { const h = new THREE.Path(); h.absarc(o.u*S, o.v*S, o.r*S, 0, Math.PI*2, true); shape.holes.push(h); }
+  return shape;
+}
+function wallGeo(w){
+  const geo = new THREE.ExtrudeGeometry(shapeFor(w), { depth:w.t*S, bevelEnabled:false, curveSegments:40 });
+  const [ax,ay] = w.a, [bx,by] = w.b, L = Math.hypot(bx-ax, by-ay), ux = (bx-ax)/L, uy = (by-ay)/L;
+  const m = new THREE.Matrix4().makeBasis(new THREE.Vector3(ux,0,-uy), new THREE.Vector3(0,1,0), new THREE.Vector3(uy,0,ux));
+  m.setPosition(ax*S, w.z0*S, -ay*S);
+  geo.applyMatrix4(m);
+  return { geo, n:new THREE.Vector3(uy,0,ux), p:new THREE.Vector3((ax+bx)/2*S, (w.z0+110)*S, -(ay+by)/2*S) };
+}
+function addShell(mesh, parent, n, p){
+  parent.add(mesh);
+  const e = new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry, 25), new THREE.LineBasicMaterial({ color:EDGE, transparent:true, opacity:.55 }));
+  e.position.copy(mesh.position); e.quaternion.copy(mesh.quaternion);
+  parent.add(e);
+  shell.push({ mesh, edges:e, n:n.clone().normalize(), p });
+}
+function wall(w, parent, isShell){
+  const { geo, n, p } = wallGeo(w);
+  const mesh = new THREE.Mesh(geo, mat.wall);
+  if (isShell) addShell(mesh, parent, n, p);
+  else { parent.add(mesh); parent.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, 25), edgeStatic)); }
+}
+function box(x0,x1,y0,y1,z0,z1,m,parent,{ edges=true, measure=false }={}){
+  const g = new THREE.BoxGeometry(Math.abs(x1-x0)*S, Math.abs(z1-z0)*S, Math.abs(y1-y0)*S);
+  const mesh = new THREE.Mesh(g, m);
+  mesh.position.set((x0+x1)/2*S, (z0+z1)/2*S, -(y0+y1)/2*S);
+  if (edges) mesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(g), edgeStatic));
+  parent.add(mesh);
+  if (measure) measurables.push(mesh);
+  return mesh;
+}
+function beam(p0,p1,w,h,m,parent){
+  const a = v3(p0), b = v3(p1);
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(w*S, h*S, a.distanceTo(b)), m);
+  mesh.position.addVectors(a,b).multiplyScalar(.5);
+  mesh.lookAt(b);
+  parent.add(mesh);
+  return mesh;
+}
+function railing(p0,p1,parent,H=95){
+  const L = Math.hypot(p1[0]-p0[0], p1[1]-p0[1]), n = Math.max(1, Math.ceil(L/110));
+  for (let i = 0; i <= n; i++) {
+    const t = i/n, x = p0[0]+(p1[0]-p0[0])*t, y = p0[1]+(p1[1]-p0[1])*t, z = p0[2]+(p1[2]-p0[2])*t;
+    box(x-2,x+2,y-2,y+2,z,z+H,mat.red,parent,{ edges:false });
+  }
+  beam([p0[0],p0[1],p0[2]+H],[p1[0],p1[1],p1[2]+H],5,5,mat.red,parent);
+  for (const hh of [25,50,75]) beam([p0[0],p0[1],p0[2]+hh],[p1[0],p1[1],p1[2]+hh],1.2,1.2,mat.steel,parent);
+}
+function floorMesh(poly, z, m){
+  const g = new THREE.ShapeGeometry(new THREE.Shape(poly.map(([x,y]) => new THREE.Vector2(x*S, y*S))));
+  g.rotateX(-Math.PI/2);
+  const mesh = new THREE.Mesh(g, m);
+  mesh.position.y = z*S;
+  measurables.push(mesh);
+  return mesh;
+}
+function quad(pts, m){
+  const g = new THREE.BufferGeometry();
+  const v = [pts[0],pts[1],pts[2],pts[0],pts[2],pts[3]].flatMap(([x,y,z]) => [x*S, z*S, -y*S]);
+  g.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
+  g.computeVertexNormals();
+  return new THREE.Mesh(g, m);
+}
+function person(X,Y,Z,parent){
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(.2, 1.1, 4, 14), mat.person);
+  body.scale.set(1, 1, .6); body.position.y = .75;
+  const head = new THREE.Mesh(new THREE.SphereGeometry(.115, 20, 14), mat.person);
+  head.position.y = 1.63;
+  g.add(body, head);
+  g.position.copy(v3([X,Y,Z]));
+  parent.add(g);
+  people.push(g);
+}
+function label(text, pos, parent, cls=''){
+  const d = document.createElement('div');
+  d.className = 'lbl3d ' + cls; d.textContent = text;
+  const o = new CSS2DObject(d); o.position.copy(v3(pos)); parent.add(o);
+  return o;
+}
+
+function buildScene(){
+  if (bld) {
+    scene.remove(bld);
+    bld.traverse(o => {
+      if (o.geometry) o.geometry.dispose();
+      if (o.isLineSegments && o.material !== edgeStatic) o.material.dispose();
+      if (o.isCSS2DObject) o.element.remove();
+    });
+  }
+  shell = []; measurables = []; people = [];
+  bld = new THREE.Group(); g1 = new THREE.Group(); g2 = new THREE.Group(); ghost = new THREE.Group();
+  bld.add(g1, g2, ghost);
+  const sp = buildSpec();
+
+  /* ---- floor 1 ---- */
+  g1.add(floorMesh(F1, 0, mat.tile1));
+  sp.s1.forEach(w => wall(w, g1, true));
+  const cap = box(130-T, 273+T, -56-T, 0, H1-SLAB, H1, mat.wall, g1, { edges:false });
+  addShell(cap, g1, new THREE.Vector3(0,1,0), new THREE.Vector3(2.0, H1*S, .5));
+  box(151.5, 251.5, -56-T/2-1.5, -56-T/2+1.5, 0, 220, mat.glass, g1, { edges:false });
+  for (let k = 1; k <= LOW_N; k++) box(0, 98, (k-1)*D1, k*D1, 0, k*R, mat.carpet, g1, { measure:true });
+  box(0, 98, LOW_L, 455, 0, LAND_Z, mat.carpet, g1, { measure:true });
+  for (let k = 1; k <= UP_N; k++) box(98+(k-1)*D2, 98+k*D2, FLIGHT_Y, 454, (LOW_N+k)*R-5, (LOW_N+k)*R, mat.carpet, g1, { measure:true });
+  beam([98, FLIGHT_Y+3, LAND_Z-18], [344, FLIGHT_Y+3, H1-18], 6, 26, mat.red, g1);
+  beam([98, 452, LAND_Z-18], [344, 452, H1-18], 6, 26, mat.red, g1);
+  beam([98, FLIGHT_Y+3, LAND_Z-33], [344, FLIGHT_Y+3, H1-33], 3, 2, mat.led, g1);
+  wall(sp.part, g1, false);
+  railing([100, FOOT_OPEN, partTop(FOOT_OPEN)], [100, LOW_L, partTop(LOW_L)], g1);
+  railing([98, FLIGHT_Y, LAND_Z], [344, FLIGHT_Y, H1], g1);
+  person(230, 110, 0, g1);
+  label('Зал 1 этажа', [221, 170, 40], g1);
+  label('Тамбур, вход', [201, -40, 250], g1, 'soft');
+  label('Лестница', [49, 150, 150], g1, 'soft');
+  label('Под маршем от 220', [221, 408, 120], g1, 'soft');
+
+  /* ---- floor 2 ---- */
+  const slabShape = new THREE.Shape(slabPoly().map(([x,y]) => new THREE.Vector2(x*S, y*S)));
+  const slabGeo = new THREE.ExtrudeGeometry(slabShape, { depth:SLAB*S, bevelEnabled:false });
+  slabGeo.rotateX(-Math.PI/2);
+  const slab = new THREE.Mesh(slabGeo, [mat.ceil, mat.wall]);
+  slab.position.y = (H1-SLAB)*S;
+  g2.add(slab);
+  g2.add(floorMesh(slabPoly(), H1+0.15, mat.tile2));
+  sp.s2.forEach(w => wall(w, g2, true));
+  sp.inner.forEach(w => wall(w, g2, false));
+  const s = P.slope, c = P.ceil, zw = H1+W2, zc = H1+c;
+  const front = quad([[-T,0,zw],[1160+T,0,zw],[1160+T,s,zc],[-T,s,zc]], mat.ceil);
+  addShell(front, g2, new THREE.Vector3(0, s, c-W2), new THREE.Vector3(5.8, zw*S, 0));
+  const flat = quad([[-T,s,zc],[1160+T,s,zc],[1160+T,457-s,zc],[-T,457-s,zc]], mat.ceil);
+  addShell(flat, g2, new THREE.Vector3(0,1,0), new THREE.Vector3(5.8, zc*S, -2.28));
+  const backQ = quad([[-T,457-s,zc],[1160+T,457-s,zc],[1160+T,457,zw],[-T,457,zw]], mat.ceil);
+  addShell(backQ, g2, new THREE.Vector3(0, s, -(c-W2)), new THREE.Vector3(5.8, zw*S, -4.57));
+  railing([RAIL_X, 2, H1], [RAIL_X, FLIGHT_Y, H1], g2, 100);
+  box(RAIL_X-2, RAIL_X, 0, FLIGHT_Y, H1-SLAB, H1, mat.red, g2, { edges:false });
+  const wx = sp.wx, r = P.winD/2, wz = H1 + P.winC;
+  const glass = new THREE.Mesh(new THREE.CircleGeometry(r*S, 48), mat.glass);
+  glass.position.set(wx*S, wz*S, T/2*S); g2.add(glass);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(r*S, .025, 8, 56), mat.frame);
+  ring.position.set(wx*S, wz*S, .03); g2.add(ring);
+  for (let i = 0; i < 4; i++) { const sp1 = new THREE.Mesh(new THREE.BoxGeometry(2*r*S, .018, .018), mat.frame); sp1.position.set(wx*S, wz*S, .03); sp1.rotation.z = i*Math.PI/4; g2.add(sp1); }
+  box(wx+60, wx+110, 3, 11, H1+15, H1+70, mat.dark, g2);
+  person(720, 280, H1, g2);
+  label('Зал 2 этажа', [620, 320, H1+40], g2);
+  label('Склад', [1017, 170, H1+40], g2);
+  label('Проход', [1017, 400, H1+40], g2, 'soft');
+  label('Второй свет', [175, 180, H1+30], g2, 'soft');
+  label('Круглое окно', [wx, 0, wz + r + 22], g2, 'soft');
+
+  /* ---- neighbour below the hall ---- */
+  const gb = box(344+T, 1160+T, -T, 457+T, 0, H1-SLAB-1, mat.ghost, ghost, { edges:false });
+  gb.add(new THREE.LineSegments(new THREE.EdgesGeometry(gb.geometry), new THREE.LineBasicMaterial({ color:0x8c969c, transparent:true, opacity:.5 })));
+  label('Соседнее помещение, не ваше', [760, 230, 170], ghost, 'soft');
+
+  scene.add(bld);
+  applyToggles();
+  people.forEach(p => { p.visible = !fp.on; });
+}
+
+/* ---- view presets ---- */
+const VIEWS = {
+  overview: { pos:[600,-700,900], tgt:[560,230,250], floor2:true },
+  top:      { pos:[580,212,2300],  tgt:[580,228,300], floor2:true },
+  top1:     { pos:[200,190,1250],  tgt:[200,215,0],   floor2:false },
+  entry:    { pos:[201,-45,160],   tgt:[210,320,150], floor2:true },
+  hall2:    { pos:[840,190,H1+160],tgt:[180,200,H1+105], floor2:true },
+};
+let tween = null;
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function goTo(name, instant=false){
+  const v = VIEWS[name]; if (!v) return;
+  $('t-floor2').checked = v.floor2; applyToggles();
+  document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('on', b.dataset.view === name));
+  const to = { p:v3(v.pos), t:v3(v.tgt) };
+  if (instant || reduceMotion) { camera.position.copy(to.p); controls.target.copy(to.t); controls.update(); tween = null; return; }
+  tween = { from:{ p:camera.position.clone(), t:controls.target.clone() }, to, t0:performance.now(), dur:850 };
+}
+document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => { if (fp.on) exitFP(); goTo(b.dataset.view); }));
+controls.addEventListener('start', () => { tween = null; });
+
+function applyToggles(){
+  if (!bld) return;
+  g2.visible = $('t-floor2').checked;
+  ghost.visible = $('t-ghost').checked;
+  labelRenderer.domElement.style.display = $('t-labels').checked ? '' : 'none';
+}
+['t-floor2','t-ghost','t-labels'].forEach(id => $(id).addEventListener('change', applyToggles));
+
+/* ---- cut-away: hide shell pieces whose outer side faces the camera ---- */
+const tmp = new THREE.Vector3();
+function updateCutaway(){
+  const on = $('t-cut').checked;
+  for (const o of shell) {
+    const hide = on && tmp.copy(camera.position).sub(o.p).dot(o.n) > 0.02;
+    o.mesh.visible = !hide;
+    o.edges.material.opacity = hide ? 0.16 : 0.55;
+  }
+}
+
+/* ---- tape measure ---- */
+const measureG = new THREE.Group(); scene.add(measureG);
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+let mPts = [], down = null;
+const dotMat = new THREE.MeshBasicMaterial({ color:0x1d6c8a, depthTest:false });
+const lineMat = new THREE.LineBasicMaterial({ color:0x1d6c8a, depthTest:false });
+function clearMeasure(){
+  measureG.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.isCSS2DObject) o.element.remove(); });
+  measureG.clear(); mPts = []; $('readout').hidden = true;
+}
+function isShown(o){ while (o) { if (!o.visible) return false; o = o.parent; } return true; }
+function pick(e){
+  const rect = renderer.domElement.getBoundingClientRect();
+  ndc.set(((e.clientX-rect.left)/rect.width)*2-1, -((e.clientY-rect.top)/rect.height)*2+1);
+  ray.setFromCamera(ndc, camera);
+  const hit = ray.intersectObjects(measurables, false).find(h => isShown(h.object));
+  if (!hit) return;
+  if (mPts.length >= 2) clearMeasure();
+  const p = hit.point.clone();
+  mPts.push(p);
+  const dot = new THREE.Mesh(new THREE.SphereGeometry(.035, 16, 10), dotMat); dot.position.copy(p); dot.renderOrder = 10; measureG.add(dot);
+  if (mPts.length === 2) {
+    const [a,b] = mPts;
+    const ln = new THREE.Line(new THREE.BufferGeometry().setFromPoints([a,b]), lineMat); ln.renderOrder = 10; measureG.add(ln);
+    const d = a.distanceTo(b)/S, dh = Math.abs(a.y-b.y)/S, dxy = Math.hypot(a.x-b.x, a.z-b.z)/S;
+    const txt = `${Math.round(d)} см` + (dh > 5 ? ` · по полу ${Math.round(dxy)}, по высоте ${Math.round(dh)}` : '');
+    const d1 = document.createElement('div'); d1.className = 'lbl3d meas'; d1.textContent = `${Math.round(d)} см`;
+    const o = new CSS2DObject(d1); o.position.addVectors(a,b).multiplyScalar(.5); measureG.add(o);
+    $('readout').textContent = 'Рулетка: ' + txt; $('readout').hidden = false;
+  } else { $('readout').textContent = 'Рулетка: кликните вторую точку'; $('readout').hidden = false; }
+}
+renderer.domElement.addEventListener('pointerdown', e => { down = { x:e.clientX, y:e.clientY }; });
+renderer.domElement.addEventListener('pointerup', e => {
+  if (fp.on || !$('t-measure').checked || !down) return;
+  if (Math.hypot(e.clientX-down.x, e.clientY-down.y) > 5) return;
+  pick(e);
+});
+$('t-measure').addEventListener('change', e => {
+  wrap.classList.toggle('measuring', e.target.checked);
+  if (!e.target.checked) clearMeasure();
+  else { $('readout').textContent = 'Рулетка: кликните первую точку'; $('readout').hidden = false; }
+});
+
+/* ---- first-person walk ----
+   Walkable areas for the walker's centre (body radius ≈ 18 cm), each with its floor height.
+   Zones overlap where you can pass; stairs are ramps. A step is accepted when the new
+   point lies in a zone whose floor is within STEP_MAX of the current one. */
+const EYE = 160, STEP_MAX = 50;
+const stairH = y => Math.min(LAND_Z, Math.max(0, y / LOW_L * LAND_Z));
+const upH = x => LAND_Z + Math.min(1, Math.max(0, (x - 98) / (344 - 98))) * (H1 - LAND_Z);
+const ZONES = [
+  { x0:152, x1:251,  y0:-34, y1:30,  h:() => 0 },                              // entrance vestibule
+  { x0:123, x1:322,  y0:20,  y1:435, h:() => 0 },                              // floor 1 hall, incl. under the upper flight
+  { x0:20,  x1:140,  y0:20,  y1:FOOT_OPEN - 18, h:(x,y) => x < 98 ? stairH(y) : 0 }, // stair foot, open side
+  { x0:20,  x1:78,   y0:20,  y1:362, h:(x,y) => stairH(y) },                   // lower flight
+  { x0:20,  x1:78,   y0:340, y1:435, h:() => LAND_Z },                         // landing
+  { x0:60,  x1:364,  y0:378, y1:435, h:(x) => upH(x) },                        // upper flight
+  { x0:271, x1:857,  y0:20,  y1:341, h:() => H1 },                             // floor 2 hall, front part
+  { x0:344, x1:857,  y0:20,  y1:435, h:() => H1 },                             // floor 2 hall, past the stairwell
+  { x0:840, x1:1140, y0:356, y1:435, h:() => H1 },                             // passage by the storeroom
+  { x0:995, x1:1039, y0:300, y1:370, h:() => H1 },                             // storeroom door
+  { x0:903, x1:1140, y0:20,  y1:308, h:() => H1 },                             // storeroom
+];
+const SPOTS = { entry:{ x:201, y:-20, foot:0, yaw:0 }, hall2:{ x:830, y:200, foot:H1, yaw:Math.PI/2 } };
+const fp = { on:false, x:0, y:0, foot:0, footS:0, yaw:0, pitch:0, keys:new Set(), joy:{ x:0, y:0 }, drag:null, where:'' };
+function zoneAt(x, y, foot){
+  let best = null, bd = Infinity;
+  for (const z of ZONES) {
+    if (x < z.x0 || x > z.x1 || y < z.y0 || y > z.y1) continue;
+    const h = z.h(x, y), d = Math.abs(h - foot);
+    if (d <= STEP_MAX && d < bd) { bd = d; best = h; }
+  }
+  return best;
+}
+function tryMove(dx, dy){
+  for (const [mx, my] of [[dx,dy],[dx,0],[0,dy]]) {
+    if (mx === 0 && my === 0) continue;
+    const h = zoneAt(fp.x + mx, fp.y + my, fp.foot);
+    if (h !== null) { fp.x += mx; fp.y += my; fp.foot = h; return; }
+  }
+}
+function teleport(name){
+  const s = SPOTS[name] || SPOTS.entry;
+  Object.assign(fp, { x:s.x, y:s.y, foot:s.foot, footS:s.foot, yaw:s.yaw, pitch:-0.06 });
+}
+function enterFP(spot = 'entry'){
+  teleport(spot);
+  if (fp.on) return;
+  fp.on = true; tween = null; controls.enabled = false;
+  $('t-floor2').checked = true; applyToggles();
+  if ($('t-measure').checked) { $('t-measure').checked = false; wrap.classList.remove('measuring'); }
+  clearMeasure();
+  camera.fov = 72; camera.updateProjectionMatrix();
+  for (const o of shell) { o.mesh.visible = true; o.edges.material.opacity = .55; }
+  people.forEach(p => { p.visible = false; });
+  wrap.classList.add('fp'); $('fp-hud').hidden = false; $('v-walk').textContent = 'Выйти из прогулки';
+  document.querySelectorAll('[data-view]').forEach(b => b.classList.remove('on'));
+}
+function exitFP(){
+  if (!fp.on) return;
+  fp.on = false; fp.keys.clear(); fp.joy.x = fp.joy.y = 0; fp.drag = null;
+  if (document.pointerLockElement) document.exitPointerLock();
+  const f = new THREE.Vector3(); camera.getWorldDirection(f);
+  controls.target.copy(camera.position).addScaledVector(f, 3);
+  controls.enabled = true; camera.fov = 52; camera.updateProjectionMatrix();
+  people.forEach(p => { p.visible = true; });
+  wrap.classList.remove('fp'); $('fp-hud').hidden = true; $('v-walk').textContent = 'Пройтись внутри';
+  goTo('overview');
+}
+function updateFP(dt){
+  const has = c => fp.keys.has(c);
+  const fwd = (has('KeyW') || has('ArrowUp') ? 1 : 0) - (has('KeyS') || has('ArrowDown') ? 1 : 0) - fp.joy.y;
+  const str = (has('KeyD') ? 1 : 0) - (has('KeyA') ? 1 : 0) + fp.joy.x;
+  fp.yaw += ((has('ArrowLeft') ? 1 : 0) - (has('ArrowRight') ? 1 : 0)) * 1.9 * dt;
+  const len = Math.hypot(fwd, str);
+  if (len > 0.02) {
+    const n = Math.max(1, len), sp = (has('ShiftLeft') || has('ShiftRight') ? 300 : 150) * dt;
+    const sy = Math.sin(fp.yaw), cy = Math.cos(fp.yaw);
+    tryMove((-sy * fwd + cy * str) / n * sp, (cy * fwd + sy * str) / n * sp);
+  }
+  fp.footS += (fp.foot - fp.footS) * (1 - Math.exp(-dt * 12));
+  camera.position.set(fp.x * S, (fp.footS + EYE) * S, -fp.y * S);
+  camera.rotation.set(fp.pitch, fp.yaw, 0, 'YXZ');
+  const where = fp.footS < 40 ? '1 этаж' : fp.footS > 330 ? '2 этаж' : 'Лестница';
+  if (where !== fp.where) { fp.where = where; $('fp-where').textContent = where; }
+}
+const MOVE_KEYS = new Set(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight']);
+window.addEventListener('keydown', e => {
+  if (!fp.on || !MOVE_KEYS.has(e.code)) return;
+  const t = e.target;
+  if (t && ((t.tagName === 'INPUT' && t.type !== 'checkbox') || t.tagName === 'TEXTAREA')) return;
+  fp.keys.add(e.code); e.preventDefault();
+});
+window.addEventListener('keyup', e => fp.keys.delete(e.code));
+window.addEventListener('blur', () => fp.keys.clear());
+const cvs = renderer.domElement;
+function look(dx, dy, k){ fp.yaw -= dx * k; fp.pitch = Math.min(1.35, Math.max(-1.35, fp.pitch - dy * k)); }
+cvs.addEventListener('pointerdown', e => {
+  if (!fp.on || document.pointerLockElement === cvs) return;
+  fp.drag = { id:e.pointerId, x:e.clientX, y:e.clientY, sx:e.clientX, sy:e.clientY, touch:e.pointerType !== 'mouse' };
+  try { cvs.setPointerCapture(e.pointerId); } catch (err) {}
+});
+cvs.addEventListener('pointermove', e => {
+  const d = fp.drag; if (!fp.on || !d || e.pointerId !== d.id) return;
+  const dx = e.clientX - d.x, dy = e.clientY - d.y; d.x = e.clientX; d.y = e.clientY;
+  if (d.touch) look(-dx, -dy, 0.005); else look(dx, dy, 0.0045);
+});
+cvs.addEventListener('pointerup', e => {
+  const d = fp.drag; if (!fp.on || !d || e.pointerId !== d.id) return;
+  fp.drag = null;
+  if (!d.touch && Math.hypot(e.clientX - d.sx, e.clientY - d.sy) < 5) {
+    try { const p = cvs.requestPointerLock(); if (p && typeof p.catch === 'function') p.catch(() => {}); } catch (err) {}
+  }
+});
+cvs.addEventListener('pointercancel', () => { fp.drag = null; });
+document.addEventListener('mousemove', e => { if (fp.on && document.pointerLockElement === cvs) look(e.movementX, e.movementY, 0.0024); });
+const joy = $('fp-joy'), knob = joy.querySelector('.fp-knob');
+let joyId = null;
+function joyMove(e){
+  const r = joy.getBoundingClientRect(), R0 = r.width / 2 - 12;
+  let dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+  const m = Math.hypot(dx, dy); if (m > R0) { dx *= R0 / m; dy *= R0 / m; }
+  knob.style.transform = `translate(${dx}px, ${dy}px)`;
+  fp.joy.x = dx / R0; fp.joy.y = dy / R0;
+}
+joy.addEventListener('pointerdown', e => { joyId = e.pointerId; try { joy.setPointerCapture(e.pointerId); } catch (err) {} joyMove(e); e.preventDefault(); });
+joy.addEventListener('pointermove', e => { if (e.pointerId === joyId) joyMove(e); });
+const joyEnd = e => { if (e.pointerId !== joyId) return; joyId = null; fp.joy.x = fp.joy.y = 0; knob.style.transform = ''; };
+joy.addEventListener('pointerup', joyEnd);
+joy.addEventListener('pointercancel', joyEnd);
+document.querySelectorAll('[data-spot]').forEach(b => b.addEventListener('click', () => enterFP(b.dataset.spot)));
+$('fp-exit').addEventListener('click', exitFP);
+$('v-walk').addEventListener('click', () => { if (fp.on) exitFP(); else enterFP('entry'); });
+
+/* ---- sizing & loop ---- */
+function resize(){
+  const w = wrap.clientWidth, h = wrap.clientHeight;
+  if (!w || !h) return;
+  renderer.setSize(w, h); labelRenderer.setSize(w, h);
+  camera.aspect = w/h; camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(wrap);
+let lastT = performance.now();
+renderer.setAnimationLoop(now => {
+  const dt = Math.min(0.05, Math.max(0, (now - lastT) / 1000)); lastT = now;
+  if ($('view-model').hidden) return;
+  if (fp.on) updateFP(dt);
+  else {
+    if (tween) {
+      const k = Math.min(1, (now - tween.t0)/tween.dur), e = k < .5 ? 2*k*k : 1 - Math.pow(-2*k+2, 2)/2;
+      camera.position.lerpVectors(tween.from.p, tween.to.p, e);
+      controls.target.lerpVectors(tween.from.t, tween.to.t, e);
+      if (k >= 1) tween = null;
+    }
+    controls.update();
+    updateCutaway();
+  }
+  renderer.render(scene, camera);
+  labelRenderer.render(scene, camera);
+});
+
+/* ================= 2D drawings ================= */
+const r1 = n => Math.round(n*10)/10;
+const pt = (x,y) => `${r1(x)},${r1(-y)}`;
+const polyS = (pts, cls, extra='') => `<polygon class="${cls}" points="${pts.map(p => pt(p[0],p[1])).join(' ')}" ${extra}/>`;
+const plineS = (pts, cls, extra='') => `<polyline class="${cls}" points="${pts.map(p => pt(p[0],p[1])).join(' ')}" ${extra}/>`;
+const lineS = (x1,y1,x2,y2,cls,extra='') => `<line class="${cls}" x1="${r1(x1)}" y1="${r1(-y1)}" x2="${r1(x2)}" y2="${r1(-y2)}" ${extra}/>`;
+const rectS = (x0,y0,x1,y1,cls) => polyS([[x0,y0],[x1,y0],[x1,y1],[x0,y1]], cls);
+function textS(x,y,str,cls,fs,{ anchor='middle', rot=0 }={}){
+  return `<text class="${cls}" x="${r1(x)}" y="${r1(-y)}" font-size="${r1(fs)}" text-anchor="${anchor}" dominant-baseline="central"${rot ? ` transform="rotate(${r1(rot)} ${r1(x)} ${r1(-y)})"` : ''}>${str}</text>`;
+}
+function dimS(x1,y1,x2,y2,off,lab,fs,q=false){
+  const dx = x2-x1, dy = y2-y1, L = Math.hypot(dx,dy), ux = dx/L, uy = dy/L, nx = -uy, ny = ux;
+  const sg = off >= 0 ? 1 : -1, g = fs*.25, o = fs*.35, tk = fs*.28;
+  const q1 = [x1+nx*off, y1+ny*off], q2 = [x2+nx*off, y2+ny*off];
+  let s = '';
+  if (Math.abs(off) > g) {
+    s += lineS(x1+nx*sg*g, y1+ny*sg*g, q1[0]+nx*sg*o, q1[1]+ny*sg*o, 'dl');
+    s += lineS(x2+nx*sg*g, y2+ny*sg*g, q2[0]+nx*sg*o, q2[1]+ny*sg*o, 'dl');
+  }
+  s += lineS(q1[0]-ux*o*.6, q1[1]-uy*o*.6, q2[0]+ux*o*.6, q2[1]+uy*o*.6, 'dl');
+  for (const q of [q1,q2]) s += lineS(q[0]-(ux+nx)*tk, q[1]-(uy+ny)*tk, q[0]+(ux+nx)*tk, q[1]+(uy+ny)*tk, 'dl tick');
+  let ang = Math.atan2(-dy, dx)*180/Math.PI; if (ang > 90) ang -= 180; if (ang <= -90) ang += 180;
+  s += textS((q1[0]+q2[0])/2 + nx*sg*fs*.62, (q1[1]+q2[1])/2 + ny*sg*fs*.62, lab, 'dt' + (q ? ' q' : ''), fs*.9, { rot:ang });
+  return s;
+}
+function gridS(x0,x1,y0,y1,step){
+  let s = '';
+  for (let x = Math.ceil(x0/step)*step; x <= x1; x += step) s += lineS(x,y0,x,y1,'grid');
+  for (let y = Math.ceil(y0/step)*step; y <= y1; y += step) s += lineS(x0,y,x1,y,'grid');
+  return s;
+}
+function wallPolys(w){
+  const [ax,ay] = w.a, [bx,by] = w.b, L = w.L, ux = (bx-ax)/L, uy = (by-ay)/L, nx = uy, ny = -ux, t = w.t;
+  const ops = [...w.openings].sort((p,q) => p.u0 - q.u0);
+  const ranges = []; let s0 = -w.extA;
+  for (const o of ops) { ranges.push([s0, o.u0]); s0 = o.u1; }
+  ranges.push([s0, L + w.extB]);
+  let s = '';
+  for (const [u0,u1] of ranges) {
+    if (u1 - u0 < .1) continue;
+    const A = [ax+ux*u0, ay+uy*u0], B = [ax+ux*u1, ay+uy*u1];
+    s += polyS([A, B, [B[0]+nx*t, B[1]+ny*t], [A[0]+nx*t, A[1]+ny*t]], 'w');
+  }
+  for (const o of ops) {
+    const A = [ax+ux*o.u0, ay+uy*o.u0], B = [ax+ux*o.u1, ay+uy*o.u1];
+    s += lineS(A[0],A[1],B[0],B[1],'thin') + lineS(A[0]+nx*t,A[1]+ny*t,B[0]+nx*t,B[1]+ny*t,'thin');
+    s += lineS(A[0]+nx*t/2,A[1]+ny*t/2,B[0]+nx*t/2,B[1]+ny*t/2,'glass');
+  }
+  return s;
+}
+function scaleBar(x,y,meters,fs){
+  let s = '';
+  for (let i = 0; i < meters; i++) s += polyS([[x+i*100,y],[x+(i+1)*100,y],[x+(i+1)*100,y+fs*.3],[x+i*100,y+fs*.3]], i % 2 ? 'fl' : 'ink', 'stroke="currentColor"');
+  s += polyS([[x,y],[x+meters*100,y],[x+meters*100,y+fs*.3],[x,y+fs*.3]], 'thin');
+  s += textS(x, y-fs*.7, '0', 'sub', fs*.85) + textS(x+meters*100, y-fs*.7, `${meters} м`, 'sub', fs*.85);
+  return s;
+}
+function stairS(withLabels, fs, id){
+  let s = '';
+  s += rectS(0,0,98,457,'st');
+  s += polyS([[98,FLIGHT_Y],[344,FLIGHT_Y],[344,back1(344)],[98,back1(98)]],'st');
+  for (let k = 1; k <= LOW_N; k++) s += lineS(0,k*D1,98,k*D1,'tr');
+  s += lineS(98,FLIGHT_Y,98,457,'tr');
+  for (let k = 1; k < UP_N; k++) { const x = 98+k*D2; s += lineS(x,FLIGHT_Y,x,back1(x),'tr'); }
+  s += `<circle class="ah" cx="49" cy="-14" r="${fs*.28}"/>`;
+  s += plineS([[49,14],[49,428],[332,428]], 'walk', `marker-end="url(#ah-${id})"`);
+  s += lineS(98, FOOT_OPEN, 98, LOW_L, 'thin') + lineS(100, FOOT_OPEN, 100, LOW_L, 'rail') + lineS(98, FLIGHT_Y, 344, FLIGHT_Y, 'rail');
+  if (withLabels) s += textS(49, 190, 'лестница, 98', 'lbl', fs*.95, { rot:-90 });
+  return s;
+}
+function svgDoc(id, minX, maxX, minY, maxY, fs, body, title){
+  const ah = fs*.9;
+  return `<svg class="plan" viewBox="${minX} ${-maxY} ${maxX-minX} ${maxY-minY}" role="img" aria-label="${title}">
+  <defs><marker id="ah-${id}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="${ah}" markerHeight="${ah}" markerUnits="userSpaceOnUse" orient="auto"><path d="M0 0 L10 5 L0 10 z" class="ah"/></marker></defs>
+  ${body}</svg>`;
+}
+
+function planF1(){
+  const fs = 12, sp = buildSpec();
+  let b = gridS(-170, 590, -250, 510, 100);
+  b += polyS(F1, 'fl');
+  b += stairS(true, fs, 'p1');
+  b += plineS([[RAIL_X,0],[RAIL_X,FLIGHT_Y],[344,FLIGHT_Y]], 'dash');
+  b += textS(299, 180, 'над головой — пол 2 этажа', 'sub', fs*.85, { rot:-90 });
+  b += `<rect class="ghost" x="${344+T}" y="${-457-T}" width="${600-344-T}" height="${457+2*T}"/>`;
+  b += plineS([[600,-T],[344+T,-T],[344+T,457+T],[600,457+T]], 'dash');
+  b += textS(512, 300, 'соседнее помещение', 'sub', fs*.95) + textS(512, 282, 'над ним зал 2 этажа →', 'sub', fs*.95);
+  sp.s1.forEach(w => { b += wallPolys(w); });
+  b += wallPolys(sp.part);
+  b += textS(221, 228, 'Зал 1 этажа', 'lbl', fs*1.3) + textS(221, 208, '246 × 359 · 8,8 м²', 'sub', fs*.9);
+  b += textS(221, 386, 'верхний марш, под ним 220–345', 'sub', fs*.85);
+  b += textS(201, -28, 'тамбур', 'sub', fs*.9);
+  b += textS(201, -102, 'вход ↑', 'lbl', fs);
+  b += dimS(0,0,130,0,-136,'130',fs) + dimS(130,-56,273,-56,-80,'143',fs) + dimS(273,0,344,0,-136,'71',fs);
+  b += dimS(0,0,344,0,-176,'344',fs);
+  b += dimS(0,0,0,457,80,'457',fs) + dimS(344,0,344,455,-80,'455',fs);
+  b += dimS(273,-56,273,0,-40,'56',fs);
+  b += dimS(0,440,98,440,0,'98',fs) + dimS(98,300,344,300,0,'246',fs);
+  b += dimS(98,0,98,LOW_L,-25,'362',fs) + dimS(330,0,330,FLIGHT_Y,0,'359',fs);
+  b += textS(-170, -215, 'Высота до пола 2 этажа 365. Под верхним маршем — от 220.', 'sub', fs*.95, { anchor:'start' });
+  b += scaleBar(380, -250, 2, fs);
+  return svgDoc('p1', -180, 600, -265, 517, fs, b, 'План 1 этажа с размерами');
+}
+
+function planF2(){
+  const fs = 22, sp = buildSpec(), wx = sp.wx, s = P.slope;
+  let b = gridS(-180, 1340, -220, 620, 100);
+  b += polyS(slabPoly(), 'fl');
+  b += rectS(98, 0, RAIL_X, FLIGHT_Y, 'vd') + lineS(98,0,RAIL_X,FLIGHT_Y,'muted') + lineS(98,FLIGHT_Y,RAIL_X,0,'muted');
+  b += stairS(false, fs, 'p2');
+  b += lineS(RAIL_X, 0, RAIL_X, FLIGHT_Y, 'rail');
+  if (s > 0) { b += lineS(0, s, 1160, s, 'dash') + lineS(0, 457-s, 1160, 457-s, 'dash'); }
+  if (s >= 30) b += textS(780, s/2, 'скат', 'sub', fs*.75) + textS(780, 457-s/2, 'скат', 'sub', fs*.75);
+  sp.s2.forEach(w => { b += wallPolys(w); });
+  sp.inner.forEach(w => { b += wallPolys(w); });
+  b += lineS(977, STORE_Y, 977, STORE_Y+80, 'thin') + `<path class="thin" d="M1057 ${-STORE_Y} A80 80 0 0 0 977 ${-(STORE_Y+80)}"/>`;
+  b += rectS(wx+60, 3, wx+110, 11, 'ink');
+  b += lineS(-60, 200, 1220, 200, 'sec') + lineS(600, -40, 600, 520, 'sec');
+  b += textS(-150, 200, 'А', 'secT', fs*1.1) + textS(1305, 200, 'А', 'secT', fs*1.1) + textS(600, 552, 'Б', 'secT', fs*1.1);
+  b += textS(49, 150, 'лестница', 'lbl', fs*.8, { rot:-90 });
+  b += textS(175, 150, 'второй', 'lbl', fs*.9) + textS(175, 126, 'свет', 'lbl', fs*.9) + textS(175, 98, '155 × 359', 'sub', fs*.75);
+  b += textS(220, 412, 'марш снизу', 'sub', fs*.75);
+  b += textS(560, 262, 'Зал 2 этажа', 'lbl', fs*1.3) + textS(560, 232, '907 × 457 · 30,9 м² без склада', 'sub', fs*.8);
+  b += textS(1017, 262, 'Склад', 'lbl', fs*1.1) + textS(1017, 234, '285 × 336', 'sub', fs*.8) + textS(1017, 140, 'h 285 / 230', 'sub', fs*.75);
+  b += textS(1112, 420, 'проход', 'lbl', fs*.85) + textS(1112, 392, '285 × 113', 'sub', fs*.7);
+  b += textS(wx, Math.max(s, 40) + 20, `окно ⌀ ${P.winD}`, 'dt q', fs*.75);
+  b += dimS(0,0,98,0,-90,'98',fs) + dimS(98,0,RAIL_X,0,-90,'155',fs) + dimS(RAIL_X,0,STORE_X,0,-90,'622',fs) + dimS(STORE_X,0,1160,0,-90,'285',fs);
+  b += dimS(0,0,1160,0,-150,'1160',fs);
+  b += dimS(0,457,98,back2(98),90,'98',fs) + dimS(98,back2(98),344,back2(344),90,'246',fs) + dimS(344,back2(344),1160,455,90,'816',fs);
+  b += dimS(0,0,0,457,90,'457',fs) + dimS(1160,0,1160,455,-90,'455',fs);
+  b += dimS(RAIL_X,0,wx,0,Math.max(s,40)+70,`${P.winX}`,fs,true);
+  if (s > 0) b += dimS(840,0,840,s,0,`${s}`,fs,true);
+  b += textS(-180, -200, `Высоты: стены 226, плоский потолок ≈ ${P.ceil} (уточнить), склад 285 / 230.`, 'sub', fs*.85, { anchor:'start' });
+  b += scaleBar(1040, -210, 2, fs);
+  return svgDoc('p2', -190, 1350, -235, 600, fs, b, 'План 2 этажа с размерами');
+}
+
+function sectionA(){
+  const fs = 22, c = P.ceil, zc = H1 + c, wx = RAIL_X + P.winX;
+  let b = gridS(-60, 1220, 0, zc+40, 100);
+  b += lineS(-80, 0, 1240, 0, 'thin');
+  b += rectS(374, 0, 1160, H1-SLAB, 'ghost') + plineS([[374,0],[374,H1-SLAB],[1160,H1-SLAB]], 'dash');
+  b += textS(767, 170, 'соседнее помещение', 'sub', fs*.9);
+  b += rectS(98, 0, RAIL_X, zc, 'vd') + rectS(RAIL_X, H1, 1160, zc, 'fl') + rectS(98, 0, 344, H1-SLAB, 'fl');
+  b += rectS(0, LAND_Z, 98, zc, 'vd');
+  const steps = [[98, LAND_Z]];
+  for (let k = 1; k <= UP_N; k++) { const x0 = 98+(k-1)*D2, z = (LOW_N+k)*R; steps.push([x0, z], [x0+D2, z]); }
+  b += plineS(steps, 'tr') + lineS(98, LAND_Z-25, 344, H1-25, 'tr') + lineS(0, LAND_Z, 98, LAND_Z, 'tr');
+  b += lineS(98, LAND_Z+90, 344, H1+90, 'rail');
+  b += lineS(0, H1+W2, 1160, H1+W2, 'muted');
+  b += rectS(977, H1, 1057, H1+200, 'thin');
+  const kCut = Math.ceil(200/D1);
+  b += rectS(0, 0, 98, kCut*R, 'st') + lineS(98, 0, 98, kCut*R + 12, 'thin');
+  b += rectS(-T, -12, 0, zc+8, 'w') + rectS(344, -12, 344+T, H1-SLAB, 'w') + rectS(0, -12, 344, 0, 'w');
+  b += rectS(RAIL_X, H1-SLAB, 1160+T, H1, 'w') + rectS(1160, H1, 1160+T, zc+8, 'w') + rectS(-T, zc, 1160+T, zc+8, 'w');
+  b += rectS(STORE_X, H1, STORE_X+STORE_T, zc, 'w');
+  b += lineS(RAIL_X, H1, RAIL_X, H1+100, 'rail');
+  b += textS(221, 130, '1 этаж', 'lbl', fs);
+  b += textS(175, 520, 'второй', 'lbl', fs*.85) + textS(175, 496, 'свет', 'lbl', fs*.85);
+  b += textS(600, H1+150, 'Зал 2 этажа', 'lbl', fs) + textS(1017, H1+150, 'Склад', 'lbl', fs);
+  b += dimS(0,0,0,H1,90,'365',fs) + dimS(0,H1,0,zc,90,`${c}`,fs,true) + dimS(0,0,0,zc,160,`${zc}`,fs,true);
+  b += dimS(1160,H1,1160,H1+W2,-90,'226',fs);
+  b += dimS(124,0,124,220,0,'220',fs);
+  b += dimS(0,0,98,0,-70,'98',fs) + dimS(98,0,RAIL_X,0,-70,'155',fs) + dimS(RAIL_X,0,344,0,-70,'91',fs) + dimS(344,0,STORE_X,0,-70,'531',fs) + dimS(STORE_X,0,1160,0,-70,'285',fs);
+  b += dimS(0,0,1160,0,-130,'1160',fs);
+  b += textS(1285, 0, '±0', 'sub', fs*.85, { anchor:'start' }) + textS(1285, H1, '+365', 'sub', fs*.85, { anchor:'start' }) + textS(1285, zc, `+${zc}`, 'dt q', fs*.85, { anchor:'start' });
+  return svgDoc('sa', -240, 1390, -175, zc+70, fs, b, 'Разрез А–А');
+}
+
+function sectionB(){
+  const fs = 12, c = P.ceil, s = Math.min(P.slope, 220), zc = H1 + c, zw = H1 + W2, wx = RAIL_X + P.winX, r = P.winD/2;
+  let b = gridS(-60, 520, 0, zc+40, 100);
+  b += lineS(-80, 0, 540, 0, 'thin');
+  b += rectS(0, 0, 457, H1-SLAB, 'ghost') + rectS(0, 0, 457, H1-SLAB, 'dash');
+  b += textS(228, 170, 'соседнее помещение', 'sub', fs*.95);
+  b += polyS([[0,H1],[457,H1],[457,zw],[457-s,zc],[s,zc],[0,zw]], 'fl');
+  b += lineS(0, H1+100, FLIGHT_Y, H1+100, 'rail');
+  for (const y of [0, 90, 180, 270, FLIGHT_Y]) b += lineS(y, H1, y, H1+100, 'rail');
+  b += textS(180, H1+125, 'перила второго света, за ними лестница', 'sub', fs*.8);
+  const dx = 600 - wx;
+  if (Math.abs(dx) < r) {
+    const hh = Math.sqrt(r*r - dx*dx), z0 = H1 + P.winC - hh, z1 = H1 + P.winC + hh;
+    b += rectS(-T, H1-SLAB, 0, z0, 'w') + rectS(-T, z1, 0, zw, 'w') + lineS(-T/2, z0, -T/2, z1, 'glass');
+  } else b += rectS(-T, H1-SLAB, 0, zw, 'w');
+  b += rectS(457, H1-SLAB, 457+T, zw, 'w') + rectS(0, H1-SLAB, 457, H1, 'w');
+  b += polyS([[-T,zw],[0,zw],[s,zc],[457-s,zc],[457,zw],[457+T,zw],[457+T,zw+8],[457-s,zc+8],[s,zc+8],[-T,zw+8]], 'w');
+  b += textS(228, H1+190, 'Зал 2 этажа', 'lbl', fs*1.2);
+  b += textS(14, H1 + P.winC, `окно ⌀ ${P.winD}`, 'dt q', fs*.85, { anchor:'start' });
+  b += dimS(0,0,457,0,-60,'457',fs);
+  if (s > 0) b += dimS(0,zc,s,zc,40,`${s}`,fs,true) + dimS(457-s,zc,457,zc,40,`${s}`,fs,true);
+  b += dimS(0,H1,0,zw,90,'226',fs) + dimS(0,zw,0,zc,90,`${c-W2}`,fs,true) + dimS(0,H1,0,zc,150,`${c}`,fs,true);
+  b += dimS(0,H1,0,H1+P.winC-r,-40,`${Math.round(P.winC-r)}`,fs,true);
+  b += textS(-200, H1, '+365', 'sub', fs*.9, { anchor:'start' }) + textS(-200, 0, '±0', 'sub', fs*.9, { anchor:'start' });
+  return svgDoc('sb', -210, 570, -110, zc+80, fs, b, 'Разрез Б–Б');
+}
+
+function renderPlans(){
+  $('svg-plan1').innerHTML = planF1();
+  $('svg-plan2').innerHTML = planF2();
+  $('svg-secA').innerHTML = sectionA();
+  $('svg-secB').innerHTML = sectionB();
+}
+
+/* ================= params UI ================= */
+const PARAMS = ['ceil','slope','winD','winX','winC'];
+function syncInputs(){ for (const k of PARAMS) { $('p-'+k).value = P[k]; $('o-'+k).textContent = P[k]; } }
+let raf = 0;
+function scheduleRebuild(){ cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { buildScene(); renderPlans(); }); }
+for (const k of PARAMS) $('p-'+k).addEventListener('input', e => { P[k] = Number(e.target.value); clampP(); syncInputs(); saveP(); scheduleRebuild(); });
+$('p-reset').addEventListener('click', () => { Object.assign(P, DEFAULTS); syncInputs(); saveP(); scheduleRebuild(); });
+
+/* ================= tabs ================= */
+const TABS = ['model','plan-1','plan-2','sections'];
+function showTab(id){
+  const walk = id === 'walk';
+  if (!TABS.includes(id)) id = 'model';
+  for (const t of TABS) { $('view-'+t).hidden = t !== id; $('tab-'+t).setAttribute('aria-selected', String(t === id)); }
+  if (id === 'model') requestAnimationFrame(resize);
+  if (walk) enterFP('entry'); else if (id !== 'model') exitFP();
+}
+document.querySelectorAll('[data-tab]').forEach(b => b.addEventListener('click', () => {
+  if (location.hash.slice(1) === b.dataset.tab) showTab(b.dataset.tab); else location.hash = b.dataset.tab;
+}));
+window.addEventListener('hashchange', () => showTab(location.hash.slice(1)));
+
+syncInputs();
+buildScene();
+renderPlans();
+resize();
+goTo('overview', true);
+showTab(location.hash.slice(1));
+</script>
+
+</body>
+</html>
