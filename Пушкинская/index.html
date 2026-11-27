@@ -853,7 +853,7 @@ cvs.addEventListener('pointerdown', e => {
 cvs.addEventListener('pointermove', e => {
   const d = fp.drag; if (!fp.on || !d || e.pointerId !== d.id) return;
   const dx = e.clientX - d.x, dy = e.clientY - d.y; d.x = e.clientX; d.y = e.clientY;
-  if (d.touch) look(-dx, -dy, 0.005); else look(dx, dy, 0.0045);
+  look(dx, dy, d.touch ? 0.005 : 0.0045);
 });
 cvs.addEventListener('pointerup', e => {
   const d = fp.drag; if (!fp.on || !d || e.pointerId !== d.id) return;
